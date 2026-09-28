@@ -18,7 +18,7 @@ jobs:
       - name: Extract project
         run: |
           mkdir android
-          MaaApp_Home_Fixed.zip
+          unzip -q MaaApp.zip -d android
 
       - name: Build APK
         run: |
