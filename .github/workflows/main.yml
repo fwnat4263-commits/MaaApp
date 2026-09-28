@@ -8,20 +8,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup JDK
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
+      - name: Extract project
+        run: |
+          mkdir android
+          unzip -q MaaAppAndroid_CloudBuild_READY.zip -d android
+
       - name: Build APK
-        run: chmod +x gradlew && ./gradlew assembleDebug
+        run: |
+          PROJECT=$(find android -name gradlew -type f | head -1 | xargs dirname)
+          cd "$PROJECT"
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Maa-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: Maa-APK
+          path: android/**/app/build/outputs/apk/debug/*.apk
