@@ -18,7 +18,7 @@ jobs:
       - name: Extract project
         run: |
           mkdir android
-          unzip -q MaaApp_Clean_UI.zip -d android
+          unzip -q MaaApp_Model_Screens.zip -d android
 
       - name: Build APK
         run: |
