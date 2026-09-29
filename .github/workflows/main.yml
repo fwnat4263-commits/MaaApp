@@ -8,21 +8,60 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Extract project
         run: |
+          rm -rf android
           mkdir android
           unzip -q MaaApp_Model_Screens.zip -d android
 
-      - name: Build APK
+      - name: Fix MaaApp layout
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          files = list(Path("android").rglob("MainActivity.java"))
+          if not files:
+              raise SystemExit("MainActivity.java not found")
+
+          p = files[0]
+          s = p.read_text(encoding="utf-8")
+
+          s = s.replace(
+              'r.addView(sv,lp(-1,0));',
+              'r.addView(sv,new LinearLayout.LayoutParams(-1,0,1));'
+          )
+
+          s = s.replace(
+              'r.addView(c,lp(-1,0));',
+              'r.addView(c,new LinearLayout.LayoutParams(-1,0,1));'
+          )
+
+          s = s.replace(
+              'c.addView(map,lp(-1,0));',
+              'c.addView(map,new LinearLayout.LayoutParams(-1,0,1));'
+          )
+
+          p.write_text(s, encoding="utf-8")
+          print("MaaApp layout fixed:", p)
+          PY
+
+      - name: Find Android project
         run: |
           PROJECT=$(find android -name gradlew -type f | head -1 | xargs dirname)
+          echo "PROJECT=$PROJECT" >> "$GITHUB_ENV"
+          echo "Found project: $PROJECT"
+
+      - name: Build APK
+        run: |
           cd "$PROJECT"
           chmod +x gradlew
           ./gradlew assembleDebug
